@@ -2,14 +2,16 @@ version: '3'
 services:
   zookeeper:
     image: wurstmeister/zookeeper
+    restart: unless-stopped
     ports:
       - "2181:2181"
   kafka:
     image: wurstmeister/kafka
+    restart: unless-stopped
     ports:
       - "9092"
     environment:
-      KAFAKA_CREATE_TOPICS: "web:1:1,ntp:1:1,dns:1:1,worker:1:1:other:1:1"
+      KAFAKA_CREATE_TOPICS: "web:1:1,ntp:1:1,dns:1:1,worker:1:1:other:1:1,firewall:1:1"
       KAFKA_ADVERTISED_HOST_NAME: 10.241.80.51
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
     volumes:
