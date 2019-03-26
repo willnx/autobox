@@ -16,3 +16,14 @@ services:
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+
+  firewall_processor:
+    image: willnx/vlab-firewall-processor
+    restart: unless-stopped
+    environment:
+      - INFLUXDB_SERVER=vlab-data.emc.com
+      - INFLUXDB_USER=vlabAdmin
+      - INFLUXDB_PASSWD_FILE=/influx_creds.txt
+      - CIPHER_KEY_FILE=/log_sender.key
+      - KAFKA_SERVER=vlab-data.emc.com:9092
+      - KAFKA_TOPIC=firewall

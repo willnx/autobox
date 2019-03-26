@@ -18,5 +18,8 @@ install: uninstall build
 test: uninstall install
 	cd tests && nosetests -v --with-coverage --cover-package=log_processor
 
+images: build
+	docker build -f FirewallDockerfile -t willnx/vlab-firewall-processor .
+
 up: clean
 	docker-compose up --abort-on-container-exit
