@@ -16,7 +16,7 @@ class InfluxDB:
         self._last_write = 0
         self._measurement = measurement
         self.headers = {'application/octet-stream'}
-        self.params = {'db' : self._db}
+        self.params = {'db' : self._db, 'precision' : 's'} # seconds
 
     def write(self, fields, tags=None, timestamp=None):
         """Add a data point to InfluxDB.
