@@ -81,6 +81,6 @@ class FirewallWorker(Worker):
 if __name__ == '__main__':
     process_logs(worker_cls=FirewallWorker,
                  topic='firewall',
-                 server=os.environ['KAFKA_SERVER'],
+                 server=environ['KAFKA_SERVER'],
                  work_group='firewall',
                  name='FirewallProcessor')
