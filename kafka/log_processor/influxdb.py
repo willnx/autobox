@@ -15,7 +15,7 @@ class InfluxDB:
         self._staged = []
         self._last_write = 0
         self._measurement = measurement
-        self.headers = {'application/octet-stream'}
+        self.headers = {'Content-Type': 'application/octet-stream'}
         self.params = {'db' : self._db, 'precision' : 's'} # seconds
 
     def write(self, fields, tags=None, timestamp=None):
