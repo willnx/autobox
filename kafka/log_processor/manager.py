@@ -160,7 +160,9 @@ def adjust_worker_count(workers, worker_cls, work_group,work_queue, idle_queue, 
         potential_make = max(0, MAX_WORKERS - len(workers))
         to_make = min(need, potential_make)
         for _ in range(to_make):
-            workers.append(worker_cls(work_group, work_queue, idle_queue))
+            worker = worker_cls(work_group, work_queue, idle_queue)
+            worker.start()
+            workers.append(worker)
     return workers
 
 
@@ -193,7 +195,7 @@ def produce_work(workers, worker_cls, work_group, topic, work_queue, idle_queue,
     produced = 0
     produce_start = time.time()
     for event in kafka:
-        work_queue.put(event)
+        work_queue.put(event.value)
         produced += 1
         # incrementing a counter is more than x2 faster than checking a time delta.
         # PRODUCE_BEFORE_CHECKING should be large enough produce enough work
