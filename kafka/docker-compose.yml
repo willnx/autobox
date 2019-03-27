@@ -25,5 +25,8 @@ services:
       - INFLUXDB_USER=vlabAdmin
       - INFLUXDB_PASSWD_FILE=/influx_creds.txt
       - CIPHER_KEY_FILE=/log_sender.key
-      - KAFKA_SERVER=vlab-data.emc.com:9092
+      - KAFKA_SERVER=10.241.80.51:9092
       - KAFKA_TOPIC=firewall
+    volumes:
+      - /etc/vlab/influx_creds.txt:/influx_creds.txt:ro
+      - /etc/vlab/log_sender.key:/log_sender.key:ro
