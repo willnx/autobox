@@ -286,11 +286,13 @@ class TestProduceWork(unittest.TestCase):
     @patch.object(manager, 'adjust_worker_count')
     def test_produce_before_check(self, fake_adjust_worker_count, fake_check_workload):
         """``produce_work`` puts items into the work_queue until PRODUCE_BEFORE_CHECKING count is met"""
+        fake_event = MagicMock()
+        fake_event.value = 'eventA'
         workers = []
         worker_cls = MagicMock()
         work_group = 'someGroup'
         topic = 'someTopic'
-        kafka = ['eventA', 'eventB']
+        kafka = [fake_event, fake_event]
         work_queue = MagicMock()
         idle_queue = MagicMock()
         log = MagicMock()
@@ -306,11 +308,13 @@ class TestProduceWork(unittest.TestCase):
     def test_produce_interval(self, fake_adjust_worker_count, fake_check_workload, fake_time):
         """``produce_work`` keeps producing after PRODUCE_BEFORE_CHECKING until PRODUCE_INTERVAL amount of time has passed"""
         fake_time.side_effect = [1234, 1235]
+        fake_event = MagicMock()
+        fake_event.value = 'eventA'
         workers = []
         worker_cls = MagicMock()
         work_group = 'someGroup'
         topic = 'someTopic'
-        kafka = ['eventA'] * manager.PRODUCE_BEFORE_CHECKING
+        kafka = [fake_event] * manager.PRODUCE_BEFORE_CHECKING
         work_queue = MagicMock()
         idle_queue = MagicMock()
         log = MagicMock()
@@ -331,11 +335,13 @@ class TestProduceWork(unittest.TestCase):
         fake_time.side_effect = [0, 90000000, 900000000]
         fake_check_workload.return_value = ([], 0)
         fake_adjust_worker_count.return_value = []
+        fake_event = MagicMock()
+        fake_event.value = 'eventA'
         workers = []
         worker_cls = MagicMock()
         work_group = 'someGroup'
         topic = 'someTopic'
-        kafka = ['eventA'] * manager.PRODUCE_BEFORE_CHECKING
+        kafka = [fake_event] * manager.PRODUCE_BEFORE_CHECKING
         work_queue = MagicMock()
         idle_queue = MagicMock()
         log = MagicMock()
