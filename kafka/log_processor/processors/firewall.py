@@ -69,10 +69,14 @@ class FirewallWorker(Worker):
         except (ValueError, InvalidToken) as doh:
             self.log.error('Error: {}, Data: {}'.format(doh, data))
         else:
-            tags = {'user' : payload.pop('user')}
+            # writing strings to a field in Influx requires a double-quote
+            fields = {}
+            fields['user'] = '"{}"'.format(payload.pop('user'))
+            fields['source'] = '"{}"'.format(payload.pop('source'))
+            fields['target'] = '"{}"'.format(payload.pop('target'))
+            fields['packets'] = 1 # each event represents a single packet
             timestamp = payload.pop('time')
-            payload['packets'] = 1 # each event represents a single packet
-            self.influx.write(tags=tags, fields=payload, timestamp=timestamp)
+            self.influx.write(fields=fields, timestamp=timestamp)
 
     def flush_on_term(self):
         """Before termining, send all pending data points to InfluxDB"""
