@@ -102,6 +102,46 @@ class TestInfluxDB(unittest.TestCase):
 
         self.assertEqual(tags, expected)
 
+    def test_http_error(self, fake_Session):
+        """``InfluxDB.flush`` raises 'InfluxError' if the HTTP response indicates an error"""
+        fake_resp = MagicMock()
+        fake_resp.ok = False
+        fake_resp.json.return_value = {'decoded' : 'JSON'}
+        influx = influxdb.InfluxDB(server='no-where.org',
+                                   user='sam',
+                                   password='iLoveKats!',
+                                   measurement='someThing')
+        influx.session.post.return_value = fake_resp
+
+        with self.assertRaises(influxdb.InfluxError):
+            influx.flush()
+
+    def test_http_error_not_json(self, fake_Session):
+        """``InfluxDB.flush`` raises 'InfluxError' if the HTTP error isn't in JSON format"""
+        fake_resp = MagicMock()
+        fake_resp.ok = False
+        fake_resp.json.side_effect = Exception('doh')
+        influx = influxdb.InfluxDB(server='no-where.org',
+                                   user='sam',
+                                   password='iLoveKats!',
+                                   measurement='someThing')
+        influx.session.post.return_value = fake_resp
+
+        with self.assertRaises(influxdb.InfluxError):
+            influx.flush()
+
+
+class TestInfluxError(unittest.TestCase):
+    """A suite of test cases for the ``InfluxError`` exception"""
+    def test_message(self):
+        """``InfluxError`` message contains an error and HTTP status"""
+        error = influxdb.InfluxError('my error', 419)
+
+        expected = 'Status Code: 419, Error: my error'
+        actual = '{}'.format(error)
+
+        self.assertEqual(expected, actual)
+
 
 class TestFormatData(unittest.TestCase):
     """A suit of test cases for the ``_format_data`` function"""

@@ -5,10 +5,17 @@ import time
 from requests import Session
 
 
+class InfluxError(Exception):
+    """Raised when unable to write to InfluxDB"""
+    def __init__(self, error, status_code):
+        msg = 'Status Code: {}, Error: {}'.format(status_code, error)
+        super().__init__(msg)
+
+
 class InfluxDB:
     def __init__(self, server, user, password, measurement, database='vlab'):
         self._server = server
-        self.url = 'https://{}/write'.format(self._server)
+        self.url = 'https://{}:8086/write'.format(self._server)
         self._creds = (user, password)
         self._db = database
         self.session = Session()
@@ -51,7 +58,13 @@ class InfluxDB:
         :type write_time: Integer
         """
         payload = _format_data(self._staged, self._measurement)
-        self.session.post(self.url, headers=self.headers, params=self.params, data=payload)
+        resp = self.session.post(self.url, headers=self.headers, auth=self._creds, params=self.params, data=payload, verify=False)
+        if not resp.ok:
+            try:
+                error = resp.json()
+            except Exception:
+                error = resp.content
+            raise InfluxError(error, resp.status_code)
         self._last_write = write_time
         self._staged = []
 
