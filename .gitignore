@@ -67,3 +67,5 @@ bin/
 include/
 share/
 man/
+
+lib/python*
