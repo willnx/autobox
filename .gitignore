@@ -69,3 +69,4 @@ share/
 man/
 
 lib/python*
+exporter/lib/
