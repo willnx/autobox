@@ -1,2 +1,10 @@
 version: '3'
 services:
+  log-exporter:
+    image: willnx/vlab-log-exporter:latest
+    restart: unless-stopped
+    environment:
+      - KAFKA_SERVER=10.241.80.51:9092
+    volumes:
+      - /etc/vlab/log_sender.key:/etc/vlab/log_sender.key
+      - /var/run/docker.sock:/var/run/docker.sock
