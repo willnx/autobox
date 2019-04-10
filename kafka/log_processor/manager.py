@@ -19,7 +19,7 @@ from setproctitle import setproctitle
 
 from log_processor.std_logger import get_logger
 
-PRODUCE_TIMEOUT = 3000 # milliseconds; how long to wait for a new work item from Kafka
+PRODUCE_TIMEOUT = 30000 # milliseconds; how long to wait for a new work item from Kafka
 PRODUCE_INTERVAL = 30 # seconds; minimum on how long to wait in between scaling workers
 PRODUCE_BEFORE_CHECKING = 5000 # records; how many records to send to workers before checking on PRODUCE_INTERVAL
 SENTINEL = 'TERMINATE YOU USELESS PROCESS'
