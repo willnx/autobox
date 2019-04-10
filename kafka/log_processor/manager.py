@@ -19,7 +19,7 @@ from setproctitle import setproctitle
 
 from log_processor.std_logger import get_logger
 
-PRODUCE_TIMEOUT = 30000 # milliseconds; how long to wait for a new work item from Kafka
+PRODUCE_TIMEOUT = 3000 # milliseconds; how long to wait for a new work item from Kafka
 PRODUCE_INTERVAL = 30 # seconds; minimum on how long to wait in between scaling workers
 PRODUCE_BEFORE_CHECKING = 5000 # records; how many records to send to workers before checking on PRODUCE_INTERVAL
 SENTINEL = 'TERMINATE YOU USELESS PROCESS'
@@ -61,8 +61,9 @@ def check_workload(workers, work_queue, idle_queue, log):
     :param log: For writing log messages
     :type log: logging.Logger
     """
+    log.debug('Checking worker health')
     needed_workers = 0
-    workers, scale_modifier = check_worker_health(workers, idle_queue)
+    workers, scale_modifier = check_worker_health(workers, idle_queue, log)
     needed_workers = 0
     work_in_queue = work_queue.qsize()
     log.debug('Pending items for processing: {}'.format(work_in_queue))
@@ -204,9 +205,11 @@ def produce_work(workers, worker_cls, work_group, topic, work_queue, idle_queue,
         # over 600 records, so keep that in mind when adjusting PRODUCE_BEFORE_CHECKING
         if produced >= PRODUCE_BEFORE_CHECKING:
             produced = 0
+            log.debug('produced {} items, checking time'.format(PRODUCE_BEFORE_CHECKING))
             loop_delta = time.time() - produce_start
             if loop_delta > PRODUCE_INTERVAL:
-                workers, need = check_workload(workers, work_queue, log)
+                log.debug('Checking work workload')
+                workers, need = check_workload(workers, work_queue, idle_queue, log)
                 workers = adjust_worker_count(workers, worker_cls, work_group, work_queue, idle_queue, need)
                 produce_start = time.time()
 
