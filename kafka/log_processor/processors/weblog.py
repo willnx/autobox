@@ -12,16 +12,6 @@ from log_processor.manager import process_logs
 
 class WebLogWorker(LogWorker):
     """Handles processing the web logs and then uploading data to ElasticSearch"""
-    def process_data(self, data):
-        """Convert the log event into a JSON document, then upload to ElasticSearch"""
-        try:
-            info = self.extract(data)
-        except (ValueError, InvalidToken) as doh:
-            self.log.error('Error: {}, Data: {}'.format(doh, data))
-        else:
-            document = self.format_info(info)
-            self.es.write(document)
-
     @staticmethod
     def format_timestamp(timestamp):
         """Covernt an Apache-style timestamp to one ElasticSearch likes"""

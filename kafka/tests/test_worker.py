@@ -21,8 +21,8 @@ class DerpWorker(worker.Worker):
 
 class DerpLogWorker(worker.LogWorker):
     """Exists solely to test the ``LogWorker`` abstract base class"""
-    def process_data(self, data):
-        return True
+    def format_info(self, data):
+        return '{"worked":true}'
 
 
 class TestWorker(unittest.TestCase):

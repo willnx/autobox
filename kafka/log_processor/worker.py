@@ -84,6 +84,27 @@ class LogWorker(Worker):
         self.get_cipher()
         self.es = ElasticSearch(server, user, password, doc_type)
 
+    def process_data(self, data):
+        """Convert the log event into a JSON document, then upload to ElasticSearch"""
+        try:
+            info = self.extract(data)
+        except (ValueError, InvalidToken) as doh:
+            self.log.error('Error: {}, Data: {}'.format(doh, data))
+        else:
+            document = self.format_info(info)
+            self.es.write(document)
+
+    @abstractmethod
+    def format_info(self, info):
+        """Defines how to convert the log information into a JSON document for uploading to ElasticSearch
+
+        :Returns: String (JSON)
+
+        :param info: A key-value mapping of the service that create the log message, and the literal message
+        :type info: Dictionary
+        """
+        pass
+
     def get_cipher(self):
         self.cipher = Fernet(self.cipher_key)
 
