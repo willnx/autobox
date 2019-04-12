@@ -16,7 +16,7 @@ class WebLogWorker(LogWorker):
     def format_timestamp(timestamp):
         """Covernt an Apache-style timestamp to one ElasticSearch likes"""
         # [09/Apr/2019:16:34:39
-        pattern = '[%m/%b/%Y:%H:%M:%S'
+        pattern = '[%d/%b/%Y:%H:%M:%S'
         time_struct = time.strptime(timestamp, pattern)
         # Formatting the timestmap like this, instead of an EPOCH, means that
         # ElasticSearch will infer the correct type as "date"

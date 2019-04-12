@@ -56,7 +56,7 @@ class TestWebLogWorker(unittest.TestCase):
                         'log' : '10.200.217.90 - unset [08/Apr/2019:22:21:57 -0000] "GET /api/1/inf/onefs/task/2b311e03-455c-4409-b8c7-425961533a44? HTTP/1.1" 200 248 "None" "vLab CLI 2019.03.28 rid=85c1c19d38e0485da38d4d0a9da2f43f"'
                        }
         answer = web_worker.format_info(example_info)
-        expected = '{"source":"some container","timestamp":"2019\\/04\\/01 22:21:57","user":"unset","client_ip":"10.200.217.90","method":"GET","url":"\\/api\\/1\\/inf\\/onefs\\/task\\/2b311e03-455c-4409-b8c7-425961533a44?","status_code":"200","user_agent":"vLab CLI 2019.03.28 ","transaction_id":"85c1c19d38e0485da38d4d0a9da2f43f","log":"10.200.217.90 - unset [08\\/Apr\\/2019:22:21:57 -0000] \\"GET \\/api\\/1\\/inf\\/onefs\\/task\\/2b311e03-455c-4409-b8c7-425961533a44? HTTP\\/1.1\\" 200 248 \\"None\\" \\"vLab CLI 2019.03.28 rid=85c1c19d38e0485da38d4d0a9da2f43f\\""}'
+        expected = '{"source":"some container","timestamp":"2019\\/04\\/08 22:21:57","user":"unset","client_ip":"10.200.217.90","method":"GET","url":"\\/api\\/1\\/inf\\/onefs\\/task\\/2b311e03-455c-4409-b8c7-425961533a44?","status_code":"200","user_agent":"vLab CLI 2019.03.28 ","transaction_id":"85c1c19d38e0485da38d4d0a9da2f43f","log":"10.200.217.90 - unset [08\\/Apr\\/2019:22:21:57 -0000] \\"GET \\/api\\/1\\/inf\\/onefs\\/task\\/2b311e03-455c-4409-b8c7-425961533a44? HTTP\\/1.1\\" 200 248 \\"None\\" \\"vLab CLI 2019.03.28 rid=85c1c19d38e0485da38d4d0a9da2f43f\\""}'
 
         self.assertEqual(answer, expected)
 
@@ -92,7 +92,7 @@ class TestWebLogWorker(unittest.TestCase):
                         'log' : '10.200.217.90 - unset [08/Apr/2019:22:21:57 -0000] "GET /api/1/inf/onefs/task/2b311e03-455c-4409-b8c7-425961533a44? HTTP/1.1" 200 248 "None" "python/requests"'
                        }
         answer = web_worker.format_info(example_info)
-        expected = '{"source":"some container","timestamp":"2019\\/04\\/01 22:21:57","user":"unset","client_ip":"10.200.217.90","method":"GET","url":"\\/api\\/1\\/inf\\/onefs\\/task\\/2b311e03-455c-4409-b8c7-425961533a44?","status_code":"200","user_agent":"python\\/requests","transaction_id":null,"log":"10.200.217.90 - unset [08\\/Apr\\/2019:22:21:57 -0000] \\"GET \\/api\\/1\\/inf\\/onefs\\/task\\/2b311e03-455c-4409-b8c7-425961533a44? HTTP\\/1.1\\" 200 248 \\"None\\" \\"python\\/requests\\""}'
+        expected = '{"source":"some container","timestamp":"2019\\/04\\/08 22:21:57","user":"unset","client_ip":"10.200.217.90","method":"GET","url":"\\/api\\/1\\/inf\\/onefs\\/task\\/2b311e03-455c-4409-b8c7-425961533a44?","status_code":"200","user_agent":"python\\/requests","transaction_id":null,"log":"10.200.217.90 - unset [08\\/Apr\\/2019:22:21:57 -0000] \\"GET \\/api\\/1\\/inf\\/onefs\\/task\\/2b311e03-455c-4409-b8c7-425961533a44? HTTP\\/1.1\\" 200 248 \\"None\\" \\"python\\/requests\\""}'
 
         self.assertEqual(answer, expected)
 
