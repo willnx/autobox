@@ -21,6 +21,7 @@ test: uninstall install
 images: build
 	docker build -f FirewallDockerfile -t willnx/vlab-firewall-processor .
 	docker build -f WebLogDockerfile -t willnx/vlab-weblog-processor .
+	docker build -f WorkerLogDockerfile -t willnx/vlab-workerlog-processor .
 
 up: clean
 	docker-compose up --abort-on-container-exit
