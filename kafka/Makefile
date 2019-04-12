@@ -22,6 +22,7 @@ images: build
 	docker build -f FirewallDockerfile -t willnx/vlab-firewall-processor .
 	docker build -f WebLogDockerfile -t willnx/vlab-weblog-processor .
 	docker build -f WorkerLogDockerfile -t willnx/vlab-workerlog-processor .
+	docker build -f DnsLogDockerfile -t willnx/vlab-dnslog-processor .
 
 up: clean
 	docker-compose up --abort-on-container-exit
