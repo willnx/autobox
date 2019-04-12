@@ -92,7 +92,8 @@ class LogWorker(Worker):
             self.log.error('Error: {}, Data: {}'.format(doh, data))
         else:
             document = self.format_info(info)
-            self.es.write(document)
+            if document:
+                self.es.write(document)
 
     @abstractmethod
     def format_info(self, info):
