@@ -52,11 +52,11 @@ services:
     environment:
       - ELASTICSEARCH_SERVER=10.241.80.50
       - ELASTICSEARCH_USER=vlabAdmin
-      - ELASTICSEARCH_DOC_TYPE=web
+      - ELASTICSEARCH_DOC_TYPE=worker
       - ELASTICSEARCH_PASSWD_FILE=/es_creds.txt
       - CIPHER_KEY_FILE=/log_sender.key
       - KAFKA_SERVER=10.241.80.51:9092
-      - KAFKA_TOPIC=web
+      - KAFKA_TOPIC=worker
     volumes:
       - /etc/vlab/es_creds.txt:/es_creds.txt:ro
       - /etc/vlab/log_sender.key:/log_sender.key:ro
