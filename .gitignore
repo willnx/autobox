@@ -70,3 +70,4 @@ man/
 
 lib/python*
 exporter/lib/
+stat_collector/lib/
