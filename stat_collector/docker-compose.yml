@@ -1,12 +1,14 @@
 version: '3'
 services:
-  vsphere-collector:
-    image: willnx/vsphere-collector
+  user-collector:
+    image:
+      willnx/vlab-usage-stat-collector
+    restart:
+      unless-stopped
     environment:
-      - VSPHERE_USERNAME=Administrator@vsphere.local
-      - VSPHERE_PASSWD=IsilonR0cks!
-      - VSPHERE_SERVER=vlab-vcenter.emc.com
-      - INFLUXDB_SERVER=vlab-data.emc.com
-      - INFLUXDB_USER=vlabAdmin
-      - INFLUXDB_PASSWD=IsilonR0cks!
-      - INFLUXDB_TARGET_DB=vlab
+      - INFLUX_SERVER=changMe
+      - INFLUX_USER=changMe
+      - INFLUX_PASSWORD=changMe
+      - VCENTER_SERVER=changMe
+      - VCENTER_USER=changMe
+      - VCENTER_PASSWORD=changMe

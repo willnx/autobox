@@ -19,7 +19,7 @@ test: uninstall install
 	cd tests && nosetests -v --with-coverage --cover-package=stat_collector
 
 images: build
-	docker build -f Dockerfile -t willnx/vlab-stat_collector .
+	docker build -f UsageDockerfile -t willnx/vlab-usage-stat-collector .
 
 up: clean
 	docker-compose up --abort-on-container-exit
