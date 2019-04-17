@@ -5,4 +5,4 @@ RUN pip3 install /tmp/*.whl && rm /tmp/*.whl
 RUN apk del gcc
 
 WORKDIR /usr/lib/python3.6/site-packages/stat_collector
-CMD ["python3", "collect_user_stats.py"]
+CMD ["python3", "collect_usage_stats.py"]
