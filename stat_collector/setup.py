@@ -17,7 +17,7 @@ setup(name="stat-collector",
         'Operating System :: POSIX :: Linux',
         'Programming Language :: Python :: 3.6',
       ],
-      description="A system to process vLab logging data",
+      description="A system to collect stats from core platforms in vLab",
       long_description=open('README.rst').read(),
-      install_requires=['ujson', 'cryptography', 'setproctitle', 'kafka-python', 'requests']
+      install_requires=['setproctitle', 'requests', 'vlab_inf_common']
       )
