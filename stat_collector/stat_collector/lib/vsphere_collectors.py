@@ -3,6 +3,7 @@ import time
 import datetime
 import threading
 from random import randint
+from abc import abstractmethod
 
 import ujson
 from vlab_inf_common.vmware import vim
@@ -75,23 +76,20 @@ class PerfCollector:
     :param vcenter: A connection to a vCenter server
     :type vcenter: vlab_inf_common.vmware.vCenter
 
-    :param entity_name: The name of the object within vSphere to pull metrics about
-    :type entity_name: String
+    :param entity: The object within vSphere to pull metrics about
+    :type entity_name: pyVmomi.VmomiSupport.LazyType
 
-    :param entity_type: The category/type of the object; ``vim.SomeType``
-    :type entity_type: pyVmomi.VmomiSupport.LazyType
+    :param counter_name: The name of the stat to pull from vCenter
     """
-    def __init__(self, vcenter, entity_name, entity_type, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, vcenter, entity, counter_name):
         self.vcenter = vcenter
-        self.entity_name = entity_name
-        self.entity_type = entity_type
         self.last_collected = datetime.datetime.now()
+        self.entity = entity
+        self.counter_name = counter_name
+        self._metric_id = None
 
-    @property
-    def entity(self):
-        """The object ref to the thing in vCenter"""
-        return self.vcenter.get_by_name(self.entity_type, self.entity_name)
+    def __repr__(self):
+        return 'PerfCollector(name={}, stat={}, last={})'.format(self.entity.name, self.counter_name, self.last_collected.strftime('%Y/%m/%d %H:%M:%S'))
 
     @property
     def _counters(self):
@@ -112,26 +110,157 @@ class PerfCollector:
             answer[full_name] = counter.key
         return answer
 
-    def metric_id(self, counter_name):
-        answer = vim.PerformanceManager.MetricId(counterId=self.counters[counter_name], instance="")
-        # pyVmomi wants this object as an iterable, even though it doesn't return it as one...
-        return [answer]
+    @property
+    def metric_id(self):
+        if self._metric_id is None:
+            answer = vim.PerformanceManager.MetricId(counterId=self.counters[self.counter_name], instance="")
+            # pyVmomi wants this object as an iterable, even though it doesn't return it as one...
+            self._metric_id = [answer]
+        return self._metric_id
 
-    def query(self, metric_name):
-        """TODO"""
+    def query(self):
+        """Generate the query spec, and collect some data.
+        The returned object is a mapping of EPOCH timestamp to stat value.
+
+        :Returns: Dictionary
+        """
         query_spec = vim.PerformanceManager.QuerySpec(entity=self.entity,
-                                                     metricId=self.metric_id(metric_name),
-                                                     startTime=self.last_collected)
-        shit = self.perf_manager.QueryPerf(querySpec=[query_spec])
+                                                     metricId=self.metric_id,
+                                                     startTime=self.last_collected,
+                                                     endTime=datetime.datetime.now(),
+                                                     maxSample=100)
+        data = self.perf_manager.QueryPerf(querySpec=[query_spec])
         stats = {}
-        for shit_datastructure in shit:
-            try:
-                value = shit_datastructure.value[0].value[0]
-            except IndexError:
-                # If no data points are returned, this shit data structure returns
-                # an iterable object...
-                pass
-            else:
-                timestamp = shit_datastructure.sampleInfo[0].timestamp.strftime('%s') # Now it's EPOCH
-                stats[timestamp] = value
+        if data:
+            data = data[0]
+            # the god damn time stamp and value are in two different arrays on the
+            # same object, and **you** have to coordinate the index...
+            for shit_index in range(len(data.sampleInfo)):
+                try:
+                    # no idea why they make the "value" object an array of objects
+                    # each with an attribute of "value" that is an array of the literal
+                    # values. Don't blame me for the magic number, blame the shitty
+                    # dev at VMware that came up with this shitstorm data structure...
+                    value = data.value[0].value[shit_index]
+                except IndexError:
+                    # If no data points are returned, this shit data structure returns
+                    # an iterable object...
+                    pass
+                else:
+                    timestamp = data.sampleInfo[shit_index].timestamp.strftime('%s')
+                    timestamp = int(timestamp) - time.timezone # Now it's EPOCH
+                    stats[timestamp] = value
+                    self.last_collected = datetime.datetime.now()
         return stats
+
+
+class CollectorThread(threading.Thread):
+    """A worker thread for collecting stats
+
+    When sub-classing this object you must define:
+
+    -   self._stats   : The stat key names to collect
+    -   self._kind    : The human name for the thing you're collecting stats about.
+                        For example, ``VM`` is for virtual machines, ``ESXi`` would be
+                        for hosts in vCenter.
+    - ``find_entity`` : How to find the specific object in vCenter that you want to
+                        collect stats from. Must set ``self._entity`` as well as
+                        return the object.
+    """
+    def __init__(self, vcenter, influxdb, name):
+        super().__init__()
+        self.vcenter = vcenter
+        self.influxdb = influxdb
+        self.entity_name = name
+        self.keep_running = True
+        self._entity = None
+        self._kind = None
+        self._loop_interval = 300
+        self._stats = [] # subclasses set this value
+        self.collectors = []
+
+    def setup_collectors(self):
+        self.collectors = [PerfCollector(self.vcenter, self.entity(), x) for x in self._stats]
+
+    def entity(self):
+        """The object reference to the thing you're collecting stats about"""
+        if self._entity is None:
+            self._entity = self.find_entity()
+        return self._entity
+
+    @abstractmethod
+    def find_entity(self):
+        """How to find the object reference to the thing you're collecting stats about"""
+        pass
+
+    def collect_stats(self):
+        """Collect and upload stats"""
+        if self._stats and not self.collectors:
+            self.setup_collectors()
+        for collector in self.collectors:
+            data = collector.query()
+            for timestamp, value in data.items():
+                fields = {collector.counter_name : value}
+                tags = {'name' : self.entity_name, 'kind': "{}".format(self._kind)}
+                self.influxdb.write(fields=fields, tags=tags, timestamp=timestamp)
+
+    def run(self):
+        """Defines how the thread collects, processes, and uploads stats"""
+        while self.keep_running:
+            start = time.time()
+            self.collect_stats()
+            delta = time.time() - start
+            if delta > self._loop_interval:
+                sleep_for = 0
+            else:
+                sleep_for = min(abs(self._loop_interval - delta), self._loop_interval)
+            time.sleep(sleep_for)
+
+
+class VMCollector(CollectorThread):
+    """Collect stats specific a Virtual Machine from vCenter"""
+    def __init__(self, vcenter, influxdb, name, parent_dir):
+        super().__init__(vcenter, influxdb, name)
+        self.parent_dir = parent_dir
+        self._kind = 'VM'
+        self._stats = ['cpu.usage.average',
+                       'net.bytesRx.average',
+                       'net.bytesTx.average',
+                       'mem.active.average',
+                       'disk.usage.average',
+                       'disk.read.average',
+                       'disk.write.average',]
+        self.setup_collectors()
+
+    def find_entity(self):
+        folder = self.vcenter.get_by_name(vim.Folder, self.parent_dir)
+        for entity in folder.childEntity:
+            if entity.name == self.entity_name:
+                self._entity = entity
+                return entity
+        else:
+            raise RuntimeError('Unable to find {} named {} in folder {}'.format(self._kind, self.entity_name, self.parent_dir))
+
+
+class ESXiCollector(CollectorThread):
+    """Collect stats specific to an ESXi host from vCenter"""
+    def __init__(self, vcenter, influxdb, name):
+        super().__init__(vcenter, influxdb, name)
+        self._kind = 'ESXi'
+        self._stats = ['cpu.usage.average',
+                       'cpu.capacity.provisioned.average',
+                       'net.bytesRx.average',
+                       'net.bytesTx.average',
+                       'mem.active.average',
+                       'power.power.average',
+                       ]
+        self.setup_collectors()
+
+    def find_entity(self):
+        try:
+            entity = self.vcenter.host_systems[self.entity_name]
+        except Exception:
+            raise RuntimeError('No such {} by name {}'.format(self._kind, self.entity_name))
+        else:
+            self._entity = entity
+            return entity
