@@ -1,9 +1,14 @@
 # -*- coding: UTF-8 -*-
 """Abstact the InfluxDB API"""
 import time
+import copy
 
 from requests import Session
 from stat_collector.lib.std_logger import get_logger
+
+# Disable those annoying warnings...
+import urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 class InfluxError(Exception):
@@ -45,7 +50,7 @@ class InfluxDB:
         write_time = int(time.time())
         if timestamp is None:
             timestamp = write_time
-        self._staged.append({'tags' : tags, 'fields' : fields, 'timestamp' : timestamp})
+        self._staged.append({'tags' : copy.deepcopy(tags), 'fields' : copy.deepcopy(fields), 'timestamp' : timestamp})
         last_write_delta = write_time - self._last_write
         # InfluxDB docs say to write in batches of 5,000 for optimal perf
         # but I don't want to lose more than 10sec of history
@@ -73,6 +78,8 @@ class InfluxDB:
             except Exception:
                 error = resp.content
             raise InfluxError(error, resp.status_code)
+        else:
+            self.log.info('uploaded data points')
         self._last_write = write_time
         self._staged = []
 
