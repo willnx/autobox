@@ -20,6 +20,8 @@ test: uninstall install
 
 images: build
 	docker build -f UsageDockerfile -t willnx/vlab-usage-stat-collector .
+	docker build -f InfDockerfile -t willnx/vlab-inf-stat-collector .
+
 
 up: clean
 	docker-compose up --abort-on-container-exit
