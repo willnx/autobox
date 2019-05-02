@@ -12,3 +12,18 @@ services:
       - VCENTER_SERVER=changMe
       - VCENTER_USER=changMe
       - VCENTER_PASSWORD=changMe
+  inf-collector:
+    image:
+      willnx/vlab-inf-stat-collector
+    restart:
+      unless-stopped
+    environment:
+      - INFLUX_SERVER=changMe
+      - INFLUX_USER=changMe
+      - INFLUX_PASSWORD=changMe
+      - VCENTER_SERVER=changMe
+      - VCENTER_USER=changMe
+      - VCENTER_PASSWORD=changMe
+      - UNITY_SERVER=changeMe
+      - UNITY_USER=changeMe
+      - UNITY_PASSWORD=changeMe
