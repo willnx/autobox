@@ -69,14 +69,21 @@ class FirewallWorker(Worker):
         except (ValueError, InvalidToken) as doh:
             self.log.error('Error: {}, Data: {}'.format(doh, data))
         else:
-            # writing strings to a field in Influx requires a double-quote
             fields = {}
+            tags = {}
+            # writing strings to a field in Influx requires a double-quote
+            tags['username'] = '"{}"'.format(payload['user'])
+            # Dumbass Influx doesn't let you group by fields or aggregate tags...
+            # I want to count the unique occurrences of a user over a period of time
+            # to show current connected user counts, *and* be able to group by
+            # those usernames over time to show specific user usage. Wish I
+            # used TimescaleDB instead of InfluxDB
             fields['user'] = '"{}"'.format(payload.pop('user'))
             fields['source'] = '"{}"'.format(payload.pop('source'))
             fields['target'] = '"{}"'.format(payload.pop('target'))
             fields['packets'] = 1 # each event represents a single packet
             timestamp = payload.pop('time')
-            self.influx.write(fields=fields, timestamp=timestamp)
+            self.influx.write(fields=fields, tags=tags, timestamp=timestamp)
 
     def flush_on_term(self):
         """Before termining, send all pending data points to InfluxDB"""
